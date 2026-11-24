@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2026 주휴수당 계산기 | 최저시급 10,320원 월급·시급 환산</title>
+<meta name="description" content="2026년 최저시급 10,320원 기준으로 주휴수당, 주급, 월급, 연봉을 계산합니다. 주 15시간 미만이면 주휴수당이 없고, 주 40시간 기준 월 209시간으로 환산합니다.">
+<link rel="canonical" href="https://jyp1108.github.io/calc/weekly-holiday/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="author" content="생활 계산소">
+<meta name="theme-color" content="#fbfaf6">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="생활 계산소">
+<meta property="og:title" content="2026 주휴수당 계산기 | 최저시급 10,320원">
+<meta property="og:description" content="시급과 근무시간을 넣으면 주휴수당과 월급을 계산합니다. 월급에서 시급을 역산할 수도 있습니다.">
+<meta property="og:url" content="https://jyp1108.github.io/calc/weekly-holiday/">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2026 주휴수당 계산기">
+<meta name="twitter:description" content="2026년 최저시급 기준 주휴수당과 월급을 계산합니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f4fd8'/%3E%3Ctext x='32' y='45' font-size='32' font-weight='700' fill='%23fff' text-anchor='middle'%3E%E1%84%80%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/site.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1098242508288731" crossorigin="anonymous"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "2026 주휴수당·시급·월급 계산기",
+  "url": "https://jyp1108.github.io/calc/weekly-holiday/",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "All",
+  "inLanguage": "ko",
+  "description": "2026년 최저시급 10,320원 기준으로 주휴수당과 월 급여를 계산하는 무료 도구입니다.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" }
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-head">
+  <div class="wrap inner">
+    <a class="brand" href="/">생활 <span>계산소</span></a>
+    <nav class="site-nav" aria-label="주요 메뉴">
+      <a href="/">홈</a>
+      <a href="/#calculators">계산기</a>
+      <a href="/guides/">가이드</a>
+      <a href="/about.html">소개</a>
+      <a href="/privacy.html">개인정보</a>
+      <a href="/contact.html">문의</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <p class="breadcrumb"><a href="/">홈</a> › <a href="/#calculators">계산기</a> › 주휴수당</p>
+  <h1>2026년 주휴수당·시급·월급 계산기</h1>
+  <p class="lead">아르바이트를 하거나 직원을 채용할 때 가장 자주 부딪히는 숫자가 주휴수당입니다. 2026년 최저시급 10,320원을 기준으로 주휴수당, 주급, 월급을 계산합니다.</p>
+  <p class="meta">계산 기준 2026년 11월 · 근로기준법 제55조, 근로기준법 시행령 제30조</p>
+
+  <div class="calc">
+    <form class="card" id="form" autocomplete="off">
+      <fieldset>
+        <legend>1. 계산 방식</legend>
+        <div class="choice" role="group" aria-label="계산 방식">
+          <label><input type="radio" name="mode" value="hourly" checked> 시급으로 월급 계산</label>
+          <label><input type="radio" name="mode" value="monthly"> 월급으로 시급 계산</label>
+        </div>
+      </fieldset>
+
+      <fieldset id="hourlyBlock">
+        <legend>2. 근무 조건</legend>
+        <div class="field">
+          <label for="hourly">시급</label>
+          <div class="input-row"><input id="hourly" data-money inputmode="numeric" type="text" value="10,320"><span class="unit">원</span></div>
+        </div>
+        <div class="field">
+          <label for="dailyHours">하루 근무시간</label>
+          <div class="input-row"><input id="dailyHours" type="number" min="1" max="16" step="0.5" value="8"><span class="unit">시간</span></div>
+        </div>
+        <div class="field">
+          <label for="weeklyDays">주 근무일수</label>
+          <div class="input-row"><input id="weeklyDays" type="number" min="1" max="7" step="1" value="5"><span class="unit">일</span></div>
+        </div>
+      </fieldset>
+
+      <fieldset id="monthlyBlock" hidden>
+        <legend>2. 근무 조건</legend>
+        <div class="field">
+          <label for="monthlyPay">월급 (세전)</label>
+          <div class="input-row"><input id="monthlyPay" data-money inputmode="numeric" type="text" value="2,156,880"><span class="unit">원</span></div>
+        </div>
+        <div class="field">
+          <label for="mDailyHours">하루 근무시간</label>
+          <div class="input-row"><input id="mDailyHours" type="number" min="1" max="16" step="0.5" value="8"><span class="unit">시간</span></div>
+        </div>
+        <div class="field">
+          <label for="mWeeklyDays">주 근무일수</label>
+          <div class="input-row"><input id="mWeeklyDays" type="number" min="1" max="7" step="1" value="5"><span class="unit">일</span></div>
+        </div>
+      </fieldset>
+      <button class="btn" type="submit">계산하기</button>
+    </form>
+
+    <aside class="result" aria-live="polite">
+      <span class="tag" id="modeTag">시급 기준</span>
+      <p class="caption" style="margin-top:10px">주휴수당 (주 1회)</p>
+      <p class="big" id="holidayBig">0원</p>
+      <p class="caption" id="holidayNote"></p>
+
+      <div class="stack">
+        <dl class="kv">
+          <dt>시급</dt><dd id="oHourly">-</dd>
+          <dt>주 소정근로시간</dt><dd id="oContract">-</dd>
+          <dt>주휴시간</dt><dd id="oHolidayHours">-</dd>
+          <dt>주급 (소정+주휴)</dt><dd id="oWeekly">-</dd>
+          <dt>월 소정근로시간</dt><dd id="oMonthlyHours">-</dd>
+          <dt>월급 (세전)</dt><dd id="oMonthly">-</dd>
+          <dt>연봉 환산</dt><dd id="oAnnual">-</dd>
+        </dl>
+      </div>
+      <p class="caption" id="check" style="margin-top:14px"></p>
+    </aside>
+  </div>
+
+  <section style="margin-top:40px">
+    <h2>주휴수당은 이렇게 나옵니다</h2>
+    <p>근로기준법 제55조는 사용자가 1주 동안 소정근로일을 개근한 근로자에게 유급휴일을 주도록 정하고 있습니다. 시행령 제30조는 그 휴일을 주휴일로 정하고, 주 15시간 이상 일한 근로자에게 적용합니다. 받는 돈은 휴일 하루치 임금입니다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>주 소정근로시간</th><th>주휴시간</th><th>주휴수당 (시급 10,320원)</th><th>주급 합계</th></tr>
+        </thead>
+        <tbody id="hoursTable"></tbody>
+      </table>
+    </div>
+    <p class="note">주 40시간을 넘는 시간은 연장근로라서 주휴시간이 8시간을 넘지 않습니다. 주 15시간 미만이면 주휴수당이 발생하지 않습니다.</p>
+
+    <h2>월급이 209시간인 이유</h2>
+    <p>한 달 평균 주 수는 365일을 12개월과 7일로 나눈 4.345주입니다. 주 40시간 근무에 주휴 8시간을 더한 48시간에 이 값을 곱하면 208.6시간이 되고, 급여 실무에서는 이를 209시간으로 반올림합니다. 2026년 최저임금 월 환산액 2,156,880원도 209시간을 기준으로 고시된 금액입니다.</p>
+    <div class="tip">
+      <p>근무일이 주 6일이면 소정근로시간은 늘지만 주휴시간은 8시간에서 멈춥니다. 반대로 주 15시간을 겨우 넘기는 단시간 근무자는 주휴시간이 3시간 안팎으로 작아, 시급만 보면 놓치기 쉽습니다.</p>
+    </div>
+
+    <h2>최저임금과 비교하기</h2>
+    <p>2026년 최저임금은 시급 10,320원, 월 209시간 환산 2,156,880원입니다. 2025년 10,030원보다 2.9% 올랐습니다. 주휴수당을 빼고 시급만 최저임금에 맞추는 계약은 법 위반이므로, 근로계약서에 주휴수당이 따로 적혀 있지 않더라도 월급에 포함돼 있는지 확인해야 합니다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>연도</th><th>최저시급</th><th>월 환산(209시간)</th><th>전년 대비</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>2026년</td><td>10,320원</td><td>2,156,880원</td><td>+2.9%</td></tr>
+          <tr><td>2025년</td><td>10,030원</td><td>2,096,270원</td><td>+1.7%</td></tr>
+          <tr><td>2024년</td><td>9,860원</td><td>2,060,740원</td><td>+2.5%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>자주 묻는 질문</h2>
+    <details>
+      <summary>주휴수당을 주지 않으면 어떻게 되나요?</summary>
+      <p>근로기준법상 임금이므로 지급하지 않으면 임금 체불이 됩니다. 관할 고용노동청에 진정을 넣을 수 있고, 3년치까지 청구할 수 있습니다. 퇴사 후에도 근로계약서와 급여 이체 내역을 근거로 청구할 수 있습니다.</p>
+    </details>
+    <details>
+      <summary>결근하면 주휴수당이 사라지나요?</summary>
+      <p>소정근로일을 개근해야 발생합니다. 지각이나 조퇴는 개근으로 보는 경우가 많지만, 하루라도 결근하면 그 주의 주휴수당은 없습니다. 다만 회사 규정이 근로기준법보다 근로자에게 유리하면 그 규정을 따릅니다.</p>
+    </details>
+    <details>
+      <summary>월급제 직원도 주휴수당을 따로 받나요?</summary>
+      <p>월급제에서는 월급에 주휴수당이 포함된 것으로 봅니다. 월급을 209시간으로 나눈 금액이 최저임금 이상이면 주휴수당이 포함된 것으로 인정됩니다. 그래서 월급 250만원을 받는 주 40시간 근로자의 시급을 역산하면 약 11,962원이 됩니다.</p>
+    </details>
+    <details>
+      <summary>4대보험료는 주휴수당에도 붙나요?</summary>
+      <p>붙습니다. 주휴수당은 임금이므로 건강보험·국민연금·고용보험의 보수에 포함됩니다. 다만 주 15시간 미만 초단시간 근로자는 일부 보험이 적용되지 않을 수 있습니다.</p>
+    </details>
+    <details>
+      <summary>퇴직금 계산에도 주휴수당이 들어가나요?</summary>
+      <p>들어갑니다. 퇴직금은 평균임금으로 계산하고, 평균임금에는 주휴수당을 포함한 임금 총액이 반영됩니다. 1년 이상 근무했다면 퇴직금 계산에서 주휴수당이 빠지지 않았는지 확인하세요.</p>
+    </details>
+
+    <h2>더 읽어 볼 글</h2>
+    <div class="grid two">
+      <a class="tile" href="/guides/weekly-holiday-pay.html">
+        <span class="kicker">가이드</span>
+        <h3>주휴수당 계산법과 자주 틀리는 지점</h3>
+        <p>주 15시간 기준, 결근 처리, 월급제 환산까지 사례로 풀었습니다.</p>
+      </a>
+      <a class="tile" href="/salary-calc/">
+        <span class="kicker">계산기</span>
+        <h3>2026 실수령액 계산기</h3>
+        <p>월급에서 4대보험과 세금을 뺀 실제 통장 입금액을 계산합니다.</p>
+      </a>
+    </div>
+
+    <h2>계산 기준</h2>
+    <ul class="sources">
+      <li>근로기준법 제55조 (휴일), 근로기준법 시행령 제30조 (주휴일)</li>
+      <li>최저임금법 제5조, 2026년 최저임금 고시(시급 10,320원, 월 209시간 2,156,880원)</li>
+      <li>고용노동부 최저임금위원회 연도별 최저임금 결정 현황</li>
+    </ul>
+    <p class="note">참고용 계산입니다. 실제 급여는 회사의 취업규칙, 단체협약, 근로계약의 소정근로시간에 따라 달라집니다.</p>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="links">
+      <a href="/">홈</a>
+      <a href="/#calculators">계산기</a>
+      <a href="/guides/">가이드</a>
+      <a href="/about.html">소개</a>
+      <a href="/privacy.html">개인정보처리방침</a>
+      <a href="/contact.html">문의</a>
+    </div>
+    <p>© 2026 생활 계산소 · 계산값은 서버로 전송되지 않습니다.</p>
+  </div>
+</footer>
+
+<script src="/assets/calc-core.js"></script>
+<script src="/assets/ui.js"></script>
+<script>
+(function () {
+  var C = window.LifeCalc;
+  var form = document.getElementById('form');
+
+  function mode() {
+    var el = form.querySelector('input[name="mode"]:checked');
+    return el ? el.value : 'hourly';
+  }
+
+  function run() {
+    var isHourly = mode() === 'hourly';
+    document.getElementById('hourlyBlock').hidden = !isHourly;
+    document.getElementById('monthlyBlock').hidden = isHourly;
+
+    var hourly, dailyHours, weeklyDays, r;
+    if (isHourly) {
+      hourly = UI.value('hourly');
+      dailyHours = UI.value('dailyHours') || 8;
+      weeklyDays = UI.value('weeklyDays') || 5;
+      r = C.weeklyHoliday({ hourlyWage: hourly, dailyHours: dailyHours, weeklyDays: weeklyDays });
+      document.getElementById('modeTag').textContent = '시급 기준';
+    } else {
+      dailyHours = UI.value('mDailyHours') || 8;
+      weeklyDays = UI.value('mWeeklyDays') || 5;
+      hourly = C.hourlyFromMonthly(UI.value('monthlyPay'), dailyHours, weeklyDays);
+      r = C.weeklyHoliday({ hourlyWage: hourly, dailyHours: dailyHours, weeklyDays: weeklyDays });
+      document.getElementById('modeTag').textContent = '월급 기준';
+    }
+
+    if (isHourly) {
+      document.getElementById('holidayBig').textContent = UI.won(r.holidayPay);
+    } else {
+      document.getElementById('holidayBig').textContent = UI.won(r.monthlyPay);
+    }
+    document.getElementById('holidayNote').textContent = isHourly
+      ? (r.eligible ? '주 ' + r.weeklyContractHours + '시간 근무, 주휴 ' + r.holidayHours + '시간 기준입니다.' : '주 15시간 미만이라 주휴수당이 발생하지 않습니다.')
+      : (r.monthlyHours + '시간 기준으로 환산한 월급입니다. 시급 환산액은 ' + UI.won(hourly) + '입니다.');
+
+    UI.text('oHourly', UI.won(r.hourlyWage));
+    UI.text('oContract', r.dailyHours + '시간 × ' + r.weeklyDays + '일 = ' + r.weeklyContractHours + '시간');
+    UI.text('oHolidayHours', r.holidayHours + '시간');
+    UI.text('oWeekly', UI.won(r.weeklyTotal));
+    UI.text('oMonthlyHours', r.monthlyHours + '시간');
+    UI.text('oMonthly', UI.won(r.monthlyPay));
+    UI.text('oAnnual', UI.won(r.annualPay));
+
+    var msg = '';
+    if (!isHourly) msg = '월급에 주휴수당이 포함된 것으로 보고 시급을 역산했습니다. ';
+    if (r.belowMinimum) msg += '입력한 시급이 2026년 최저임금 10,320원보다 낮습니다. ';
+    if (!r.eligible) msg += '주 소정근로시간이 15시간에 못 미쳐 주휴수당이 없습니다.';
+    document.getElementById('check').textContent = msg || '2026년 최저임금 이상으로 계산되었습니다.';
+
+    var rows = [15, 20, 25, 30, 35, 40];
+    document.getElementById('hoursTable').innerHTML = rows.map(function (h) {
+      var holiday = Math.min(8, (h / 40) * 8);
+      var pay = Math.round(holiday * 10320);
+      var week = Math.round((h + holiday) * 10320);
+      return '<tr><td>주 ' + h + '시간</td><td>' + holiday + '시간</td><td>' + UI.num(pay) + '원</td><td>' + UI.num(week) + '원</td></tr>';
+    }).join('');
+  }
+
+  UI.onInput(form, run);
+  form.addEventListener('submit', function (e) { e.preventDefault(); run(); });
+})();
+</script>
+</body>
+</html>
