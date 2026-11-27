@@ -83,8 +83,8 @@
           <div class="input-row"><input id="childCredit" type="number" min="0" max="8" step="1" value="0"><span class="unit">명</span></div>
         </div>
         <div class="field">
-          <label for="child18">18세 미만 자녀 <span class="hint">카드 소득공제 한도를 올려 주는 자녀</span></label>
-          <div class="input-row"><input id="child18" type="number" min="0" max="8" step="1" value="0"><span class="unit">명</span></div>
+          <label for="child20">만 20세 이하 기본공제 자녀 <span class="hint">카드 소득공제 한도를 올려 주는 자녀·손자녀. 소득금액 100만원(근로소득만 있으면 총급여 500만원) 이하, 다른 거주자의 기본공제를 받지 않아야 하며 장애인은 나이 제한이 없습니다</span></label>
+          <div class="input-row"><input id="child20" type="number" min="0" max="8" step="1" value="0"><span class="unit">명</span></div>
         </div>
         <div class="field">
           <label for="schoolChildren">교육비를 낸 초·중·고 자녀</label>
@@ -220,7 +220,7 @@
           <tr><th>항목</th><th>2025년 귀속</th><th>2026년 귀속</th></tr>
         </thead>
         <tbody>
-          <tr><td>카드 소득공제 기본한도</td><td>300만원 (7,000만원 초과 250만원)</td><td>18세 미만 자녀 1명당 +50만원, 최대 400만원 (초과 구간은 1명당 +25만원)</td></tr>
+          <tr><td>카드 소득공제 기본한도</td><td>300만원 (7,000만원 초과 250만원)</td><td>기본공제 자녀·손자녀(만 20세 이하) 1명당 +50만원, 최대 400만원 (초과 구간은 1명당 +25만원, 최대 300만원)</td></tr>
           <tr><td>자녀세액공제 대상</td><td>8세 이상</td><td>9세 이상</td></tr>
           <tr><td>교육비 공제</td><td>초·중·고 수업료 등</td><td>초등 2학년 이하·9세 미만 자녀의 예체능 학원비 추가</td></tr>
           <tr><td>고향사랑기부금</td><td>10만원 초과분 15%</td><td>10만~20만원 구간 40%</td></tr>
@@ -236,7 +236,11 @@
     </details>
     <details>
       <summary>카드 공제에서 신용카드를 먼저 차감하는 이유는 무엇인가요?</summary>
-      <p>총급여의 25%에 해당하는 최저사용금액은 공제율이 낮은 결제수단부터 채웁니다. 신용카드 사용분이 먼저 소진되고, 그다음 체크카드와 현금영수증, 전통시장·대중교통 순으로 넘어갑니다. 그래서 연초에는 신용카드로 문턱을 채우고, 문턱을 넘긴 뒤에는 체크카드로 결제하는 편이 공제액을 키웁니다.</p>
+      <p>총급여의 25%에 해당하는 최저사용금액은 공제율이 낮은 결제수단부터 채웁니다. 신용카드 사용분이 먼저 소진되고, 그다음 체크카드·현금영수증, 문화체육 사용분, 전통시장·대중교통 순으로 넘어갑니다. 그래서 연초에는 신용카드로 문턱을 채우고, 문턱을 넘긴 뒤에는 체크카드로 결제하는 편이 공제액을 키웁니다.</p>
+    </details>
+    <details>
+      <summary>기본한도를 넘으면 공제가 사라지나요?</summary>
+      <p>아닙니다. 신용카드·체크카드·현금영수증으로 계산한 공제액이 기본한도(자녀가 있으면 가산)를 넘으면, 넘는 금액 가운데 전통시장·대중교통(총급여 7,000만원 이하면 문화체육 포함) 사용분에서 나온 공제액은 추가한도(7,000만원 이하 300만원, 초과 200만원) 안에서 더 인정됩니다. 다만 추가한도는 시장·교통·문화 사용분에서 나온 공제액만큼만 열리므로, 일반 신용카드 결제로 채운 금액은 기본한도를 넘으면 인정되지 않습니다.</p>
     </details>
     <details>
       <summary>연금계좌에 900만원을 넣으면 무조건 유리한가요?</summary>
@@ -304,7 +308,7 @@
       prepaidTax: UI.value('prepaid'),
       dependents: UI.value('dependents'),
       childrenTaxCredit: UI.value('childCredit'),
-      childrenUnder18: UI.value('child18'),
+      children: UI.value('child20'),
       schoolChildren: UI.value('schoolChildren'),
       collegeChildren: UI.value('collegeChildren'),
       credit: UI.value('credit'),
@@ -354,7 +358,9 @@
     UI.text('cStandard', UI.won(r.credits.standard));
 
     var d = '카드 사용액 ' + UI.num(r.card.totalUsage) + '원 중 최저사용금액 ' + UI.num(r.card.threshold)
-      + '원을 빼고 계산했습니다. 기본한도 ' + UI.num(r.card.baseLimit) + '원, 추가한도 ' + UI.num(r.card.addLimit) + '원.';
+      + '원을 빼고 계산했습니다. 기본한도 ' + UI.num(r.card.baseLimit) + '원'
+      + (r.card.children > 0 ? '(자녀 ' + r.card.children + '명 반영)' : '')
+      + ', 추가한도 ' + UI.num(r.card.addLimit) + '원.';
     document.getElementById('cardDetail').textContent = d;
   }
 

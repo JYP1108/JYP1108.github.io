@@ -8,6 +8,8 @@
  *  - 국민연금 4.75%(2026.7~), 건강보험 3.595%, 장기요양 건보료의 13.14%, 고용보험 0.9%
  *  - 소득세율 6~45%, 근로소득공제·인적공제·근로소득세액공제·자녀세액공제
  *  - 신용카드 등 소득공제: 총급여 25% 초과분, 신용 15%·체크/현금 30%·전통시장/대중교통 40%·문화체육 30%
+ *    기본한도 300만원(총급여 7,000만원 초과 250만원)에 기본공제대상 자녀·손자녀(만 20세 이하) 1명당
+ *    50만원(초과 구간 25만원)씩 최대 2명분 가산, 전통시장·대중교통(+문화체육) 추가한도 300만원/200만원
  */
 (function (global) {
   'use strict';
@@ -89,7 +91,10 @@
   function cardDeduction(opts) {
     var o = opts || {};
     var gross = Math.max(0, toNumber(o.grossSalary));
-    var children = Math.max(0, Math.floor(toNumber(o.childrenUnder18)));
+    // 한도 상향 대상은 기본공제대상 자녀·손자녀 등(만 20세 이하, 시행령 제121조의2 제18항).
+    // childrenUnder18은 2026년 개정 전 이름이라 계속 받아 준다.
+    var childrenInput = o.children !== undefined && o.children !== null && o.children !== '' ? o.children : o.childrenUnder18;
+    var children = Math.max(0, Math.floor(toNumber(childrenInput)));
     var credit = Math.max(0, toNumber(o.credit));
     var debit = Math.max(0, toNumber(o.debit));
     var cash = Math.max(0, toNumber(o.cash));
@@ -103,7 +108,9 @@
     var total = credit + debit + cash + market + transit + culture;
     var threshold = gross * CARD.thresholdRate;
 
-    // 최저사용금액은 공제율이 낮은 결제수단부터 차감한다.
+    // 최저사용금액은 공제율이 낮은 결제수단부터 차감한다(제2항 제6호).
+    // 신용 15% → 체크·현금 30% → 문화체육 30% → 전통시장·대중교통 40% 순서이며,
+    // 문화체육 사용분은 총급여 7,000만원 이하일 때만 이 30% 묶음에 들어간다.
     var remaining = threshold;
     function consume(amount) {
       var used = Math.min(amount, remaining);
@@ -113,9 +120,9 @@
     var cCredit = consume(credit);
     var cDebit = consume(debit);
     var cCash = consume(cash);
+    var cCulture = consume(culture);
     var cMarket = consume(market);
     var cTransit = consume(transit);
-    var cCulture = consume(culture);
 
     var baseAmount = cCredit * CARD.credit + (cDebit + cCash) * CARD.debit;
     var addAmount = cMarket * CARD.market + cTransit * CARD.transit + cCulture * CARD.culture;
@@ -124,20 +131,28 @@
     var baseLimit = (isLow ? CARD.baseLimits.low : CARD.baseLimits.high)[tier];
     var addLimit = isLow ? CARD.addLimitLow : CARD.addLimitHigh;
 
-    var baseApplied = Math.min(baseAmount, baseLimit);
-    var addApplied = Math.min(addAmount, addLimit);
+    // 제10항 기본한도는 신용·체크·시장·교통·문화를 합친 공제금액 전체에 씌우고,
+    // 한도를 넘는 금액은 제11항에 따라 시장·교통(7,000만원 이하는 문화체육 포함) 공제액 범위에서
+    // 추가한도까지 더 인정한다.
+    var rawTotal = baseAmount + addAmount;
+    var baseApplied = Math.min(rawTotal, baseLimit);
+    var excess = Math.max(0, rawTotal - baseLimit);
+    var addApplied = Math.min(excess, addAmount, addLimit);
 
     return {
       gross: gross,
       totalUsage: total,
       threshold: threshold,
       overThreshold: Math.max(0, total - threshold),
+      children: children,
       childrenUnder18: children,
       baseLimit: baseLimit,
       addLimit: addLimit,
       baseAmount: baseAmount,
       addAmount: addAmount,
+      rawTotal: rawTotal,
       baseApplied: baseApplied,
+      excess: excess,
       addApplied: addApplied,
       deduction: baseApplied + addApplied,
       creditEligible: isLow
@@ -223,7 +238,6 @@
     var gross = Math.max(0, toNumber(o.grossSalary));
     var dependents = Math.max(0, Math.floor(toNumber(o.dependents)));
     var children9 = Math.max(0, Math.floor(toNumber(o.childrenTaxCredit)));
-    var children18 = Math.max(0, Math.floor(toNumber(o.childrenUnder18)));
     var schoolChildren = Math.max(0, Math.floor(toNumber(o.schoolChildren)));
 
     var card = cardDeduction(o);
