@@ -10,6 +10,8 @@
  *  - 신용카드 등 소득공제: 총급여 25% 초과분, 신용 15%·체크/현금 30%·전통시장/대중교통 40%·문화체육 30%
  *    기본한도 300만원(총급여 7,000만원 초과 250만원)에 기본공제대상 자녀·손자녀(만 20세 이하) 1명당
  *    50만원(초과 구간 25만원)씩 최대 2명분 가산, 전통시장·대중교통(+문화체육) 추가한도 300만원/200만원
+ *  - 연금계좌 세액공제(소득세법 제59조의3): 연금저축 600만원 + IRP 합산 900만원 한도, 15%/12%
+ *  - 원천징수액(기납부세액): 빈칸일 때만 추정, 0을 넣으면 0원으로 계산
  */
 (function (global) {
   'use strict';
@@ -70,6 +72,20 @@
     if (value === null || value === undefined || value === '') return 0;
     var n = Number(String(value).replace(/[^0-9.\-]/g, ''));
     return isFinite(n) ? n : 0;
+  }
+
+  // 사용자가 아무것도 넣지 않은 상태("", null, undefined, 공백)와
+  // 직접 넣은 0을 구별해야 하는 입력란에서 쓴다.
+  function isBlank(value) {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string') return value.replace(/\s/g, '') === '';
+    return false;
+  }
+
+  // 빈칸이면 null, 값이 있으면 숫자(0 포함)를 돌려준다.
+  function optionalNumber(value) {
+    if (isBlank(value)) return null;
+    return toNumber(value);
   }
 
   function floor10(value) {
@@ -220,6 +236,7 @@
     insuranceLimit: 1000000,
     insuranceRate: 0.12,
     pensionLimit: 9000000,
+    pensionSavingsLimit: 6000000,
     pensionRateLow: 0.15,
     pensionSalaryLimit: 55000000,
     pensionRateHigh: 0.12,
@@ -256,9 +273,19 @@
     var calculatedTax = progressiveTax(taxBase);
 
     // 세액공제 (특별세액공제)
-    var pensionPaid = Math.max(0, toNumber(o.pensionAccount));
+    // 소득세법 제59조의3 제1항 단서: 연금저축계좌 납입액은 600만원까지만 인정하고,
+    // 연금저축 600만원 이내 금액과 퇴직연금계좌(IRP) 납입액을 합해 900만원을 넘으면 그 초과분은 인정하지 않는다.
+    var pensionPaid;
+    if (!isBlank(o.pensionSavings) || !isBlank(o.irp)) {
+      var savingsApplied = Math.min(Math.max(0, toNumber(o.pensionSavings)), TAX.pensionSavingsLimit);
+      var irpPaid = Math.max(0, toNumber(o.irp));
+      pensionPaid = Math.min(savingsApplied + irpPaid, TAX.pensionLimit);
+    } else {
+      // 예전 단일 입력란(pensionAccount)은 두 계좌를 합친 금액으로 본다.
+      pensionPaid = Math.min(Math.max(0, toNumber(o.pensionAccount)), TAX.pensionLimit);
+    }
     var pensionRate = gross <= TAX.pensionSalaryLimit ? TAX.pensionRateLow : TAX.pensionRateHigh;
-    var pensionCredit = Math.min(pensionPaid, TAX.pensionLimit) * pensionRate;
+    var pensionCredit = pensionPaid * pensionRate;
 
     var insuranceCredit = Math.min(Math.max(0, toNumber(o.insurancePremium)), TAX.insuranceLimit) * TAX.insuranceRate;
 
@@ -307,9 +334,10 @@
     var withholdingCredit = workTaxCredit(withholdingTax, gross) + childCredit;
     var estimatedWithheld = Math.max(0, Math.floor(withholdingTax - withholdingCredit));
 
-    var prepaid = toNumber(o.prepaidTax);
-    var prepaidApplied = prepaid > 0 ? prepaid : estimatedWithheld;
-    var prepaidIsEstimate = !(prepaid > 0);
+    // 빈칸일 때만 추정값을 쓰고, 0을 직접 넣었으면 0원으로 계산한다.
+    var prepaid = optionalNumber(o.prepaidTax);
+    var prepaidIsEstimate = prepaid === null;
+    var prepaidApplied = prepaidIsEstimate ? estimatedWithheld : Math.max(0, prepaid);
 
     var refund = prepaidApplied - determinedTax;
     var refundWithLocal = refund * (1 + RATES.localTaxRate);
@@ -330,6 +358,7 @@
       calculatedTax: Math.round(useStandard ? calculatedB : calculatedTax),
       credits: {
         pension: Math.round(pensionCredit),
+        pensionBase: Math.round(pensionPaid),
         insurance: Math.round(insuranceCredit),
         medical: Math.round(medicalCredit),
         education: Math.round(educationCredit),
@@ -529,6 +558,8 @@
     UNEMPLOYMENT: UNEMPLOYMENT,
     CARD: CARD,
     toNumber: toNumber,
+    isBlank: isBlank,
+    optionalNumber: optionalNumber,
     floor10: floor10,
     progressiveTax: progressiveTax,
     workIncomeDeduction: workIncomeDeduction,

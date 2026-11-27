@@ -4,6 +4,6 @@
   "private": true,
   "description": "생활 계산소 - 정적 계산기 사이트 (계산 엔진 단위 테스트용)",
   "scripts": {
-    "test": "node tests/card-deduction.test.js"
+    "test": "node tests/card-deduction.test.js && node tests/tax-refund.test.js"
   }
 }

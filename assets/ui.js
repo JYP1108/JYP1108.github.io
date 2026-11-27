@@ -42,6 +42,13 @@
     return window.LifeCalc.toNumber(el.value);
   }
 
+  // 빈칸이면 null, 직접 넣은 값(0 포함)이면 숫자를 돌려준다.
+  function optionalValue(id) {
+    var el = document.getElementById(id);
+    if (!el) return null;
+    return window.LifeCalc.optionalNumber(el.value);
+  }
+
   // 숫자 입력란에 천 단위 쉼표를 붙인다.
   function bindMoneyInputs(root) {
     var scope = root || document;
@@ -50,9 +57,15 @@
       if (el.dataset.bound === '1') return;
       el.dataset.bound = '1';
       el.addEventListener('input', function () {
-        var raw = window.LifeCalc.toNumber(el.value);
+        var digits = String(el.value).replace(/[^0-9]/g, '');
+        if (digits === '') {
+          el.value = '';
+          return;
+        }
+        var raw = window.LifeCalc.toNumber(digits);
         var pos = el.value.length - el.selectionStart;
-        el.value = raw ? raw.toLocaleString('ko-KR') : '';
+        // 0을 직접 넣은 경우에도 지우지 않고 그대로 둔다.
+        el.value = raw.toLocaleString('ko-KR');
         try {
           var next = Math.max(0, el.value.length - pos);
           el.setSelectionRange(next, next);
@@ -103,6 +116,7 @@
     text: text,
     html: html,
     value: value,
+    optionalValue: optionalValue,
     bindMoneyInputs: bindMoneyInputs,
     onInput: onInput,
     renderRows: renderRows
