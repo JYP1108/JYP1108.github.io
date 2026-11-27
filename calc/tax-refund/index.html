@@ -143,8 +143,20 @@
       <fieldset>
         <legend>5. 의료·교육·기부·월세</legend>
         <div class="field">
-          <label for="medical">의료비 <span class="hint">총급여의 3%를 넘는 금액부터 공제</span></label>
+          <label for="medical">일반 의료비 <span class="hint">본인을 뺀 부양가족의 병원비·약값·보장구. 총급여의 3%를 넘는 금액부터 15%, 연 700만원까지</span></label>
           <div class="input-row"><input id="medical" data-money inputmode="numeric" type="text" value="0"><span class="unit">원</span></div>
+        </div>
+        <div class="field">
+          <label for="medicalSelf">본인·6세 이하·65세 이상·장애인 의료비 <span class="hint">한도 없이 15%. 본인 의료비와 중증·희귀난치·결핵 산정특례자 의료비도 여기에 넣으세요</span></label>
+          <div class="input-row"><input id="medicalSelf" data-money inputmode="numeric" type="text" value="0"><span class="unit">원</span></div>
+        </div>
+        <div class="field">
+          <label for="medicalPremature">미숙아·선천성이상아 의료비 <span class="hint">한도 없이 20%</span></label>
+          <div class="input-row"><input id="medicalPremature" data-money inputmode="numeric" type="text" value="0"><span class="unit">원</span></div>
+        </div>
+        <div class="field">
+          <label for="medicalInfertility">난임시술비 <span class="hint">한도 없이 30%</span></label>
+          <div class="input-row"><input id="medicalInfertility" data-money inputmode="numeric" type="text" value="0"><span class="unit">원</span></div>
         </div>
         <div class="field">
           <label for="eduSchool">초·중·고 교육비 <span class="hint">자녀 1명당 300만원까지</span></label>
@@ -201,6 +213,7 @@
       </div>
       <p class="caption" id="cardDetail" style="margin-top:14px"></p>
       <p class="caption" id="pensionDetail" style="margin-top:6px"></p>
+      <p class="caption" id="medicalDetail" style="margin-top:6px"></p>
     </aside>
   </div>
 
@@ -246,6 +259,10 @@
     <details>
       <summary>기본한도를 넘으면 공제가 사라지나요?</summary>
       <p>아닙니다. 신용카드·체크카드·현금영수증으로 계산한 공제액이 기본한도(자녀가 있으면 가산)를 넘으면, 넘는 금액 가운데 전통시장·대중교통(총급여 7,000만원 이하면 문화체육 포함) 사용분에서 나온 공제액은 추가한도(7,000만원 이하 300만원, 초과 200만원) 안에서 더 인정됩니다. 다만 추가한도는 시장·교통·문화 사용분에서 나온 공제액만큼만 열리므로, 일반 신용카드 결제로 채운 금액은 기본한도를 넘으면 인정되지 않습니다.</p>
+    </details>
+    <details>
+      <summary>의료비는 종류에 따라 공제율이 다른가요?</summary>
+      <p>다릅니다. 소득세법 제59조의4 제2항은 의료비를 네 갈래로 나눕니다. 일반 의료비는 15%에 연 700만원 한도, 본인·6세 이하·65세 이상·장애인 의료비(중증·희귀난치·결핵 산정특례자 포함)는 15%에 한도 없음, 미숙아·선천성이상아 의료비는 20%, 난임시술비는 30%입니다. 총급여의 3%에 해당하는 금액은 공제율이 낮고 한도가 있는 항목부터 차감하므로 일반 의료비 → 본인·6세 이하·65세 이상·장애인 → 미숙아·선천성이상아 → 난임시술비 순서로 문턱을 채웁니다. 총급여 5,000만원에 난임시술비로 250만원을 썼다면 3%인 150만원을 빼고 남은 100만원에 30%를 적용해 30만원을 돌려받습니다. 같은 250만원을 일반 의료비로 썼다면 15만원입니다. 실손의료보험금으로 돌려받은 금액은 빼고 넣어야 합니다.</p>
     </details>
     <details>
       <summary>연금저축과 IRP는 얼마까지 세액공제되나요?</summary>
@@ -330,6 +347,9 @@
       irp: UI.value('irp'),
       insurancePremium: UI.value('insurance'),
       medical: UI.value('medical'),
+      medicalSelf: UI.value('medicalSelf'),
+      medicalPremature: UI.value('medicalPremature'),
+      medicalInfertility: UI.value('medicalInfertility'),
       educationSchool: UI.value('eduSchool'),
       educationCollege: UI.value('eduCollege'),
       donation: UI.value('donation'),
@@ -383,6 +403,30 @@
         + '과 IRP ' + UI.num(irp) + '원을 합해 ' + UI.num(r.credits.pensionBase) + '원을 공제 대상으로 잡았습니다.';
     }
     document.getElementById('pensionDetail').textContent = pensionText;
+
+    var md = r.medical;
+    var medicalText = '';
+    if (md && md.paid > 0) {
+      var segs = [];
+      if (md.general.paid > 0) segs.push('일반 ' + UI.num(md.general.paid) + '원');
+      if (md.self.paid > 0) segs.push('본인·6세 이하·65세 이상·장애인 ' + UI.num(md.self.paid) + '원');
+      if (md.premature.paid > 0) segs.push('미숙아·선천성이상아 ' + UI.num(md.premature.paid) + '원');
+      if (md.infertility.paid > 0) segs.push('난임시술비 ' + UI.num(md.infertility.paid) + '원');
+      if (md.credit > 0) {
+        var rows = [];
+        if (md.general.credit > 0) rows.push('일반 15%' + (md.general.capped ? '(700만원 한도)' : ''));
+        if (md.self.credit > 0) rows.push('본인·6세 이하·65세 이상·장애인 15%');
+        if (md.premature.credit > 0) rows.push('미숙아·선천성이상아 20%');
+        if (md.infertility.credit > 0) rows.push('난임시술비 30%');
+        medicalText = '의료비 ' + segs.join(' + ') + '에서 총급여 3%인 ' + UI.num(md.threshold)
+          + '원을 공제율이 낮은 항목부터 빼고, ' + rows.join('·')
+          + '를 적용해 합계 ' + UI.won(Math.round(md.credit)) + '을 공제했습니다.';
+      } else {
+        medicalText = '의료비 ' + segs.join(' + ') + '가 총급여 3%인 ' + UI.num(md.threshold)
+          + '원을 넘지 않아 공제액이 없습니다.';
+      }
+    }
+    document.getElementById('medicalDetail').textContent = medicalText;
   }
 
   UI.onInput(form, run);

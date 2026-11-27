@@ -162,6 +162,96 @@ test('카드 공제·표준세액공제 비교 결과가 유지된다', () => {
   assert.ok(Number.isFinite(r.determinedTax));
 });
 
+/* ------------------------------------------------------------------ *
+ * ④ 의료비 세액공제 세분화 (소득세법 제59조의4 제2항)
+ *  제1호 일반 15%(연 700만 한도), 제2호 본인·6세 이하·65세 이상·장애인 15%,
+ *  제3호 미숙아·선천성이상아 20%, 제4호 난임시술비 30%. 총급여 3% 문턱은 낮은 항목부터.
+ * ------------------------------------------------------------------ */
+group('④ 의료비 세액공제 항목별 공제율·한도');
+
+test('총급여 5,000만원 + 난임시술비 250만원(일반 0) → 100만원 × 30% = 300,000원', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medicalInfertility: 2500000 });
+  assert.strictEqual(r.medical.threshold, 1500000, '총급여 3% = 150만원');
+  assert.strictEqual(r.medical.general.credit, 0);
+  assert.strictEqual(r.medical.infertility.applied, 1000000, '250만원 − 150만원');
+  assert.strictEqual(r.credits.medical, 300000, '100만원 × 30%');
+});
+
+test('총급여 5,000만원 + 일반 의료비 1,000만원 → 850만원 중 700만원 한도 × 15% = 1,050,000원', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medical: 10000000 });
+  assert.strictEqual(r.medical.general.overThreshold, 8500000, '1,000만원 − 150만원');
+  assert.strictEqual(r.medical.general.applied, 7000000, '연 700만원 한도');
+  assert.strictEqual(r.medical.general.capped, true);
+  assert.strictEqual(r.credits.medical, 1050000, '700만원 × 15%');
+});
+
+test('일반 + 난임 혼합: 총급여 3%를 일반 의료비에서 먼저 차감', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medical: 1000000, medicalInfertility: 3000000 });
+  assert.strictEqual(r.medical.general.thresholdUsed, 1000000, '일반 100만원이 문턱을 모두 채움');
+  assert.strictEqual(r.medical.general.credit, 0);
+  assert.strictEqual(r.medical.infertility.thresholdUsed, 500000, '남은 문턱 50만원은 난임에서');
+  assert.strictEqual(r.medical.infertility.applied, 2500000);
+  assert.strictEqual(r.credits.medical, 750000, '250만원 × 30%');
+});
+
+test('본인·65세 이상·장애인 의료비는 한도 없이 15%', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medicalSelf: 20000000 });
+  assert.strictEqual(r.medical.self.applied, 18500000, '2,000만원 − 150만원');
+  assert.strictEqual(r.medical.self.cap, null, '한도 없음');
+  assert.strictEqual(r.credits.medical, 2775000, '1,850만원 × 15%');
+});
+
+test('일반 의료비가 한도를 넘어도 본인분은 문턱이 걸리지 않는다', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medical: 10000000, medicalSelf: 10000000 });
+  assert.strictEqual(r.medical.general.applied, 7000000, '일반은 700만원 한도');
+  assert.strictEqual(r.medical.self.applied, 10000000, '본인분은 전액');
+  assert.strictEqual(r.credits.medical, 2550000, '700만원 × 15% + 1,000만원 × 15%');
+});
+
+test('미숙아·선천성이상아 의료비 20%', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medicalPremature: 3000000 });
+  assert.strictEqual(r.medical.premature.applied, 1500000);
+  assert.strictEqual(r.credits.medical, 300000, '150만원 × 20%');
+});
+
+test('네 항목을 모두 넣으면 문턱은 일반 → 본인 → 미숙아 → 난임 순서로 차감', () => {
+  const r = yearEndTax({
+    grossSalary: 50000000,
+    medical: 500000,
+    medicalSelf: 500000,
+    medicalPremature: 500000,
+    medicalInfertility: 2000000
+  });
+  assert.strictEqual(r.medical.general.thresholdUsed, 500000);
+  assert.strictEqual(r.medical.self.thresholdUsed, 500000);
+  assert.strictEqual(r.medical.premature.thresholdUsed, 500000);
+  assert.strictEqual(r.medical.infertility.thresholdUsed, 0);
+  assert.strictEqual(r.credits.medical, 600000, '미숙아분은 문턱에 모두 썼고, 난임 200만원 × 30%만 남는다');
+});
+
+test('의료비 합계가 총급여 3% 이하면 공제액 0원', () => {
+  const r = yearEndTax({ grossSalary: 50000000, medicalInfertility: 1000000 });
+  assert.strictEqual(r.credits.medical, 0);
+  assert.strictEqual(r.medical.thresholdRemaining, 500000);
+});
+
+test('legacy medical 키는 일반 의료비로 보고 결과가 같다', () => {
+  const legacy = yearEndTax({ grossSalary: 50000000, medical: 10000000 });
+  const same = yearEndTax({ grossSalary: 50000000, medical: 10000000, medicalSelf: 0 });
+  assert.strictEqual(legacy.credits.medical, 1050000);
+  assert.strictEqual(same.credits.medical, legacy.credits.medical);
+  const both = yearEndTax({ grossSalary: 50000000, medical: 10000000, medicalInfertility: 0 });
+  assert.strictEqual(both.credits.medical, 1050000);
+});
+
+test('의료비 항목이 세액공제 합계·결정세액에 반영된다', () => {
+  const none = yearEndTax({ grossSalary: 50000000, prepaidTax: 0 });
+  const withInfertility = yearEndTax({ grossSalary: 50000000, prepaidTax: 0, medicalInfertility: 2500000 });
+  assert.strictEqual(withInfertility.credits.medical, 300000);
+  assert.strictEqual(withInfertility.credits.total - none.credits.total >= 300000, true, '세액공제 합계에 반영');
+  assert.ok(withInfertility.determinedTax <= none.determinedTax, '결정세액이 늘지 않음');
+});
+
 /* ------------------------------------------------------------------ */
 console.log('\n' + (failed === 0 ? 'PASS' : 'FAIL') + ' — ' + passed + '개 통과, ' + failed + '개 실패');
 if (failed > 0) {

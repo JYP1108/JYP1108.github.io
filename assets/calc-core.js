@@ -11,6 +11,8 @@
  *    기본한도 300만원(총급여 7,000만원 초과 250만원)에 기본공제대상 자녀·손자녀(만 20세 이하) 1명당
  *    50만원(초과 구간 25만원)씩 최대 2명분 가산, 전통시장·대중교통(+문화체육) 추가한도 300만원/200만원
  *  - 연금계좌 세액공제(소득세법 제59조의3): 연금저축 600만원 + IRP 합산 900만원 한도, 15%/12%
+ *  - 의료비 세액공제(소득세법 제59조의4 제2항): 일반 15%(연 700만원 한도), 본인·65세 이상·장애인 15%,
+ *    미숙아·선천성이상아 20%, 난임시술비 30%. 총급여 3% 문턱은 일반 의료비부터 차감
  *  - 원천징수액(기납부세액): 빈칸일 때만 추정, 0을 넣으면 0원으로 계산
  */
 (function (global) {
@@ -230,6 +232,10 @@
     medicalThresholdRate: 0.03,
     medicalGeneralLimit: 7000000,
     medicalRate: 0.15,
+    medicalGeneralRate: 0.15,
+    medicalSelfRate: 0.15, // 본인·65세 이상·장애인
+    medicalPrematureRate: 0.2, // 미숙아·선천성이상아
+    medicalInfertilityRate: 0.3, // 난임시술비
     educationSchoolLimit: 3000000,
     educationCollegeLimit: 9000000,
     educationRate: 0.15,
@@ -249,6 +255,70 @@
     donationRateHigh: 0.3,
     standardCredit: 130000
   };
+
+  /*
+   * 의료비 세액공제 (소득세법 제59조의4 제2항)
+   *  제1호 일반 의료비        15%, 연 700만원 한도
+   *  제2호 본인·65세 이상·장애인 15%, 한도 없음
+   *  제3호 미숙아·선천성이상아   20%, 한도 없음
+   *  제4호 난임시술비          30%, 한도 없음
+   *
+   * 최저사용금액(총급여 3%)은 공제율이 낮고 한도가 있는 항목부터 차감한다.
+   * 일반 → 본인·65세 이상·장애인 → 미숙아·선천성이상아 → 난임시술비 순서이며,
+   * 일반 의료비가 700만원을 넘더라도 문턱은 일반 의료비에서 먼저 빠지므로
+   * 한도 없는 항목의 공제액이 줄지 않는다.
+   *
+   * 입력 키: medical(일반, 예전 이름 그대로), medicalSelf, medicalPremature,
+   *          medicalInfertility. medical만 넘기던 예전 호출도 같은 결과가 나온다.
+   */
+  function medicalCredit(opts, grossAnnual) {
+    var o = opts || {};
+    var gross = Math.max(0, toNumber(grossAnnual));
+    var threshold = gross * TAX.medicalThresholdRate;
+
+    var buckets = [
+      { key: 'general', paid: Math.max(0, toNumber(o.medical)), rate: TAX.medicalGeneralRate, cap: TAX.medicalGeneralLimit },
+      { key: 'self', paid: Math.max(0, toNumber(o.medicalSelf)), rate: TAX.medicalSelfRate, cap: Infinity },
+      { key: 'premature', paid: Math.max(0, toNumber(o.medicalPremature)), rate: TAX.medicalPrematureRate, cap: Infinity },
+      { key: 'infertility', paid: Math.max(0, toNumber(o.medicalInfertility)), rate: TAX.medicalInfertilityRate, cap: Infinity }
+    ];
+
+    var remaining = threshold;
+    var paidTotal = 0;
+    var creditTotal = 0;
+    var detail = {};
+    buckets.forEach(function (b) {
+      var consumed = Math.min(b.paid, remaining);
+      remaining -= consumed;
+      var overThreshold = b.paid - consumed;
+      var applied = Math.min(overThreshold, b.cap);
+      var credit = applied * b.rate;
+      paidTotal += b.paid;
+      creditTotal += credit;
+      detail[b.key] = {
+        paid: b.paid,
+        thresholdUsed: consumed,
+        overThreshold: overThreshold,
+        applied: applied,
+        capped: overThreshold > applied,
+        rate: b.rate,
+        cap: b.cap === Infinity ? null : b.cap,
+        credit: credit
+      };
+    });
+
+    return {
+      gross: gross,
+      paid: paidTotal,
+      threshold: threshold,
+      thresholdRemaining: remaining,
+      general: detail.general,
+      self: detail.self,
+      premature: detail.premature,
+      infertility: detail.infertility,
+      credit: creditTotal
+    };
+  }
 
   function yearEndTax(opts) {
     var o = opts || {};
@@ -289,9 +359,7 @@
 
     var insuranceCredit = Math.min(Math.max(0, toNumber(o.insurancePremium)), TAX.insuranceLimit) * TAX.insuranceRate;
 
-    var medicalPaid = Math.max(0, toNumber(o.medical));
-    var medicalBase = Math.max(0, medicalPaid - gross * TAX.medicalThresholdRate);
-    var medicalCredit = Math.min(medicalBase, TAX.medicalGeneralLimit) * TAX.medicalRate;
+    var medical = medicalCredit(o, gross);
 
     var schoolPaid = Math.max(0, toNumber(o.educationSchool));
     var collegePaid = Math.max(0, toNumber(o.educationCollege));
@@ -312,7 +380,7 @@
       rentCredit = rentApplied * (gross <= TAX.pensionSalaryLimit ? TAX.rentRateLow : TAX.rentRateHigh);
     }
 
-    var specialCreditSum = insuranceCredit + medicalCredit + educationCredit + donationCredit + rentCredit;
+    var specialCreditSum = insuranceCredit + medical.credit + educationCredit + donationCredit + rentCredit;
     var childCredit = childTaxCredit(children9);
 
     // 시나리오 A: 특별소득공제(건강보험료 등)와 특별세액공제를 모두 받는 경우
@@ -346,6 +414,7 @@
       year: YEAR,
       gross: gross,
       card: card,
+      medical: medical,
       incomeDeduction: {
         earned: Math.round(earnedDeduction),
         personal: personal,
@@ -360,7 +429,7 @@
         pension: Math.round(pensionCredit),
         pensionBase: Math.round(pensionPaid),
         insurance: Math.round(insuranceCredit),
-        medical: Math.round(medicalCredit),
+        medical: Math.round(medical.credit),
         education: Math.round(educationCredit),
         donation: Math.round(donationCredit),
         rent: Math.round(rentCredit),
@@ -567,6 +636,7 @@
     workTaxCreditLimit: workTaxCreditLimit,
     childTaxCredit: childTaxCredit,
     cardDeduction: cardDeduction,
+    medicalCredit: medicalCredit,
     yearEndTax: yearEndTax,
     benefitDays: benefitDays,
     unemployment: unemployment,
